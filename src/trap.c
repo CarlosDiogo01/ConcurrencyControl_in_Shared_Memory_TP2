@@ -63,9 +63,21 @@ int main(int argc, char** argv) {
     if (argc != 2) Usage(argv[0]);
     thread_count = strtol(argv[1], NULL, 10);
     if (thread_count <= 0 || thread_count > MAX_THREADS) Usage(argv[0]);
-    
 
-    /****** USER-FRIENDLY VERSION *****/
+    /******************** I/O Script VERSION ******************************/
+    
+    /** Interval [a,b] **/
+    a = strtol(argv[2], NULL, 10);
+    b = strtol(argv[3], NULL, 10);
+
+    /** Number of Sub-intervals/rectangles **/
+    n = strtol(argv[4], NULL, 10); 
+   
+    /*********************************************************************/
+
+
+   
+    /***************** USER-FRIENDLY VERSION *******************************
     while(!get_out && 1){
 	    puts("Insert the values of [a,b] interval");
 	    printf("Inferior limit (a): \n");
@@ -82,7 +94,7 @@ int main(int argc, char** argv) {
 	if (n <= 0) puts("Not a valid interval\n");
 	else get_out = 1;
     }
-    
+    ***********************************************************************/
     h = (b-a)/n;
 
     /*** Pre-condition! We should divide the number of Sub-intervals EQUALLY to the number of threads we're executing the program! Otherwise, the result will not be correct ***/
