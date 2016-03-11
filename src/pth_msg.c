@@ -16,7 +16,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 
-const int MAX_THREADS = 1024;
+const int MAX_THREADS = 4;
 const int MSG_MAX = 100;
 
 /* Global variables:  accessible to all threads */
