@@ -5,7 +5,7 @@
  	     One value for the superior limit -> b
 	     The number of sub-intervals -> n
  *
- * Output:   Estimate the integral from a to b of f(x) using the trapezoidal rule and n sub-intervals.
+ * Output:   Estimate the integral from a to b of f(x) using Pthreads for the trapezoidal rule and n sub-intervals
  *
  *
  */
@@ -13,8 +13,9 @@
 #include <stdlib.h>
 #include <pthread.h>    
 
-/******************* FOR SEMAPHORES *******************/
+#ifdef D_SEMAPHORE
 #include <semaphore.h>  /* Semaphores need to be included because is not part of Pthreads */
+#endif
 
 const int MAX_THREADS = 64;
 
@@ -30,17 +31,21 @@ int n;
 int n_thread;
 double all_approx;
 
-/******************* FOR SEMAPHORES *******************/
+
+#ifdef D_SEMAPHORE
 sem_t sem;   /* Declaration of semaphore */
+#endif
 
 
-/******************* FOR MUTEX *******************/
-//pthread_mutex_t mutex;	/* The "Special" type for mutexes - Slide 35 */
+#ifdef D_MUTEX
+pthread_mutex_t mutex;	/* The "Special" type for mutexes - Slide 35 */
+#endif
 
+#ifdef D_BUSYWAITING
+long flag = 0;
+#endif
 
-/******************* FOR BUSY-WAITING *******************/
-
-
+/*** Global Functions ***/
 void Usage (char* prog_name);
 void *job_thread(void* rank); 								/* Thread function */
 double trapezoidal_rule(double a_thread, double b_thread, int n_thread, double h);	/* Calculate integral for thread */
@@ -59,6 +64,8 @@ int main(int argc, char** argv) {
     thread_count = strtol(argv[1], NULL, 10);
     if (thread_count <= 0 || thread_count > MAX_THREADS) Usage(argv[0]);
     
+
+    /****** USER-FRIENDLY VERSION *****/
     while(!get_out && 1){
 	    puts("Insert the values of [a,b] interval");
 	    printf("Inferior limit (a): \n");
@@ -84,13 +91,16 @@ int main(int argc, char** argv) {
     thread_handles = malloc (thread_count*sizeof(pthread_t));
     
     
-/******************* FOR MUTEX *******************/
+#ifdef D_MUTEX
     /******* Initiate MUTEX ******/
-    //pthread_mutex_init(&mutex, NULL);
+    pthread_mutex_init(&mutex, NULL);
+#endif
+
     
-    /******************* FOR SEMAPHORES *******************/
+#ifdef D_SEMAPHORE
     /******* Initiate SEMAPHORE ******/
     sem_init(&sem, 0, 1); /** 0 - semaphore shared by all threads, 1 - Semaphore initialized as unlocked **/
+#endif
 
     /* Create Pthreads*/
     for (thread_id = 0; thread_id < thread_count; thread_id++) {
@@ -103,17 +113,21 @@ int main(int argc, char** argv) {
     }
 
     /* All threads finished their work. Main print the result */
+    
+    /***  PRINT USER-FRIENDLY ***/
     printf("From [%f,%f] the integral estimate with trapezoide-rule with %d sub-intervals is: %f\n", a, b, n, all_approx);
 
 
-/******************* FOR SEMAPHORES *******************/
+#ifdef D_SEMAPHORE
     /******* Destroy the semaphore ******/
     sem_destroy(&sem);
+#endif
 
 
-/******************* FOR MUTEX *******************/
+#ifdef D_MUTEX
     /******* Destroy the mutex ******/
-    //pthread_mutex_destroy(&mutex);
+    pthread_mutex_destroy(&mutex);
+#endif
 
     free(thread_handles);
 
@@ -133,21 +147,35 @@ void *job_thread(void* rank) {
     my_integral = trapezoidal_rule(a_thread, b_thread, n_thread, h);
 
 
-/******************* FOR SEMAPHORES *******************/
+#ifdef D_SEMAPHORE
 					/* If sem is zero thread waits until is != zero */
 					/* If sem if not zero, thread enter critical region */
     sem_wait(&sem);			/* Entering the critical region and LOCK the semaphore sem */
      	all_approx += my_integral;	/* Update all_approx safely */
     sem_post(&sem);			/* Exit the critical region and RELEASE the semaphore by incrementing sem */
+#endif
 
 
+
+#ifdef D_MUTEX
 /******************* FOR MUTEX *******************/
-    //pthread_mutex_lock(&mutex);		/* Entering the critical region and LOCK the mutex */
-    //	all_approx += my_integral;		/* Update all_approx safely */
-    //pthread_mutex_unlock(&mutex);		/* Exit critical region and UNLOCK de mutex for other thread can use */
+    pthread_mutex_lock(&mutex);		/* Entering the critical region and LOCK the mutex */
+    	all_approx += my_integral;	/* Update all_approx safely */
+    pthread_mutex_unlock(&mutex);	/* Exit critical region and UNLOCK de mutex for other thread can use */
+#endif
+
+
+
+#ifdef D_BUSYWAITING
+    while(flag != my_rank){
+    	all_approx += my_integral;
+	flag = (flag+1) % thread_count;
+    }
+#endif
 
 return NULL;
 }
+
 
 /*------------ Algorithm for one aproximation interval -----------------------*/
 double trapezoidal_rule(double a_thread, double b_thread, int n_thread, double  h) {
