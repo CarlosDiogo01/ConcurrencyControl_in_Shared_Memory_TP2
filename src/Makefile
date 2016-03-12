@@ -18,4 +18,6 @@ clean:
 	rm -f *.o
 	rm -f *.out
 	rm -rf *.dSYM
+	rm -rf CSV
+	rm pth_hello
 	rm -f trap_*

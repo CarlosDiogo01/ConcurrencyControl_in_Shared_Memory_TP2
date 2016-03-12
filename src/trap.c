@@ -56,11 +56,12 @@ double f(double x);
 int main(int argc, char** argv) {
     long thread_id;
     pthread_t* thread_handles;  
-    all_approx = 0.0;	/* For being used with semaphore */
-    int get_out = 0;	/* Flag for I/O while */
+    all_approx = 0.0f;	/* For being used with semaphore */
+    //int get_out = 0;	/* Flag USER-FRIENDLY Interface I/O while */
     
     /* Get number of threads from command line */
-    if (argc != 2) Usage(argv[0]);
+    char* prog_name = argv[0];
+    if (argc < 5) Usage(prog_name);
     thread_count = strtol(argv[1], NULL, 10);
     if (thread_count <= 0 || thread_count > MAX_THREADS) Usage(argv[0]);
 
@@ -126,18 +127,23 @@ int main(int argc, char** argv) {
 
     /* All threads finished their work. Main print the result */
     
-    /***  PRINT USER-FRIENDLY ***/
+    
+    printf("%s,%d,%f,%f,%d,%f\n",prog_name,thread_count,a,b,n,all_approx);
+
+
+    /*********  PRINT USER-FRIENDLY ******
     printf("From [%f,%f] the integral estimate with trapezoide-rule with %d sub-intervals is: %f\n", a, b, n, all_approx);
+   **************************************/
 
 
 #ifdef D_SEMAPHORE
-    /******* Destroy the semaphore ******/
+    /*** Destroy the semaphore ***/
     sem_destroy(&sem);
 #endif
 
 
 #ifdef D_MUTEX
-    /******* Destroy the mutex ******/
+    /**** Destroy the mutex ***/
     pthread_mutex_destroy(&mutex);
 #endif
 
@@ -170,7 +176,6 @@ void *job_thread(void* rank) {
 
 
 #ifdef D_MUTEX
-/******************* FOR MUTEX *******************/
     pthread_mutex_lock(&mutex);		/* Entering the critical region and LOCK the mutex */
     	all_approx += my_integral;	/* Update all_approx safely */
     pthread_mutex_unlock(&mutex);	/* Exit critical region and UNLOCK de mutex for other thread can use */
@@ -215,6 +220,7 @@ double f(double x) {
 /*-------------------------------------------------------------------*/
 /* Usage */
 void Usage(char* prog_name) {
+	fprintf(stderr, "Make sure you're passing %s NTHREADS a b n as arguments", prog_name);	
 	fprintf(stderr, "usage: %s <number of threads>\n", prog_name);
 	fprintf(stderr, "0 < number of threads <= %d\n", MAX_THREADS);
 exit(0);
