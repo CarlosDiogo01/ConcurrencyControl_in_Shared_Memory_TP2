@@ -34,9 +34,9 @@ done
 
 echo "Executing Ex2..."
 
-echo "MutualExclusion,NThreads,val_a,val_b,nRectangles/Sub-Intervals,Result,Time(ms)" >> CSV/trap_mutex_output.csv
-echo "MutualExclusion,NThreads,val_a,val_b,nRectangles/Sub-Intervals,Result,Time(ms)" >> CSV/trap_semaphore_output.csv
-echo "MutualExclusion,NThreads,val_a,val_b,nRectangles/Sub-Intervals,Result,Time(ms)" >> CSV/trap_busywaiting_output.csv
+echo "MutualExclusion,NThreads,val_a,val_b,nRectangles/Sub-Intervals,Result" >> CSV/trap_mutex_output.csv
+echo "MutualExclusion,NThreads,val_a,val_b,nRectangles/Sub-Intervals,Result" >> CSV/trap_semaphore_output.csv
+echo "MutualExclusion,NThreads,val_a,val_b,nRectangles/Sub-Intervals,Result" >> CSV/trap_busywaiting_output.csv
 
 echo "Sequential MUTEX | SEMAPHORE | BUSY-WAITING..."
 for ((sample=1; sample <= $max_sample; sample++ ))

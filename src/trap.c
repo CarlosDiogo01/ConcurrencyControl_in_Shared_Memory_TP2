@@ -12,6 +12,9 @@
 #include <stdio.h>      /* For I/0 needed: scanf and printf **/
 #include <stdlib.h>
 #include <pthread.h>    
+#include "timer.h"	/* For measuring time. gettimeofday and sys/time.h based*/
+#include <math.h>
+
 
 #ifdef D_SEMAPHORE
 #include <semaphore.h>  /* Semaphores need to be included because is not part of Pthreads */
@@ -36,14 +39,14 @@ double all_approx;
 sem_t sem;   /* Declaration of semaphore */
 #endif
 
-
 #ifdef D_MUTEX
 pthread_mutex_t mutex;	/* The "Special" type for mutexes - Slide 35 */
 #endif
 
 #ifdef D_BUSYWAITING
-long flag = 0;
+long flag=0;
 #endif
+
 
 /*** Global Functions ***/
 void Usage (char* prog_name);
@@ -56,9 +59,11 @@ double f(double x);
 int main(int argc, char** argv) {
     long thread_id;
     pthread_t* thread_handles;  
-    all_approx = 0.0f;	/* For being used with semaphore */
+    all_approx = 0.0;	/* For being used with semaphore */
     //int get_out = 0;	/* Flag USER-FRIENDLY Interface I/O while */
-    
+    double start, end, elapsed;       /* For measuring time with Professor Antonio Pina timer.h */
+
+
     /* Get number of threads from command line */
     char* prog_name = argv[0];
     if (argc < 5) Usage(prog_name);
@@ -92,7 +97,7 @@ int main(int argc, char** argv) {
     while(!get_out && 1){
     	printf("Insert the number of Sub-intervals: \n");
 	scanf("%d", &n);
-	if (n <= 0) puts("Not a valid interval\n");
+	if (n <= 0) puts("Not a valid number of Sub-intervals\n");
 	else get_out = 1;
     }
     ***********************************************************************/
@@ -103,7 +108,8 @@ int main(int argc, char** argv) {
 
     thread_handles = malloc (thread_count*sizeof(pthread_t));
     
-    
+    GET_TIME(start);
+
 #ifdef D_MUTEX
     /******* Initiate MUTEX ******/
     pthread_mutex_init(&mutex, NULL);
@@ -125,10 +131,11 @@ int main(int argc, char** argv) {
         pthread_join(thread_handles[thread_id], NULL);
     }
 
-    /* All threads finished their work. Main print the result */
-    
-    
-    printf("%s,%d,%f,%f,%d,%f\n",prog_name,thread_count,a,b,n,all_approx);
+    GET_TIME(end);
+    elapsed = end - start;
+
+    /* All threads finished their work. Main print the result */    
+    printf("%s,%d,%f,%f,%d,%f,%f\n",prog_name,thread_count,a,b,n,all_approx,(elapsed)*pow(10,3));
 
 
     /*********  PRINT USER-FRIENDLY ******
@@ -152,7 +159,7 @@ int main(int argc, char** argv) {
 return 0;
 } 
 
-/*--------------Each thread sould run this job --------------------------------*/
+/*-------------- Each thread sould run this job --------------------------------*/
 void *job_thread(void* rank) {
     long my_rank = (long) rank;
     double a_thread;   
@@ -184,10 +191,10 @@ void *job_thread(void* rank) {
 
 
 #ifdef D_BUSYWAITING
-    while(flag != my_rank){
-    	all_approx += my_integral;
-	flag = (flag+1) % thread_count;
-    }
+    while(flag != my_rank)
+    	;
+    all_approx += my_integral;
+    flag = (flag+1)%thread_count;
 #endif
 
 return NULL;
