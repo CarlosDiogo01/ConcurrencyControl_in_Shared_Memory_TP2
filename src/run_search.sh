@@ -1,14 +1,19 @@
-#!/bin/bash
+#!/bin/sh
 
-max_threads=64
-max_sample=1
+#PBS -N ivyBridge_OMP
+#PBS -l walltime=00:01:00
+#PBS -q mei 
+#PBS -m abe
+#PBS -M carlos.sa01@gmail.com
+#PBS -l nodes=1:r641:ppn=32
+
+max_threads=16
+max_sample=5
 num_threads=1
 
-a=20
-b=40
+a=2
+b=242
 n=12
-
-mkdir -p CSV
 
 echo "Executing Ex1 for pth_hello..."
 
