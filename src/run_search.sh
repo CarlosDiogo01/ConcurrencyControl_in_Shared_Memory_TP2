@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#PBS -N ivyBridge_OMP
+#PBS -N ivyBridge_pthreads
 #PBS -l walltime=00:01:00
 #PBS -q mei 
 #PBS -m abe
@@ -14,6 +14,10 @@ num_threads=1
 a=2
 b=242
 n=12
+
+cd /home/a59905/ESC_TP2/src/
+module purge
+module load gnu/4.9.3
 
 echo "Executing Ex1 for pth_hello..."
 
